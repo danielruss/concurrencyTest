@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .invis {
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <label for="progressBar">loading Questionnaire</label>
+        <progress class="invis" id="progressBar"></progress><br>
+        <button id="button">test</button>
+        <button id="clear">clear</button>
+        <button id="moreBtn" disabled>run again</button>
+        <div id="stdout"></div>
+        <script>
+    
+            const stdout = document.getElementById("stdout")
+            let pb = document.getElementById("progressBar")
+            let mb = document.getElementById("moreBtn")
+            
+
+            document.getElementById("button").addEventListener("click",()=>stdout.insertAdjacentHTML("beforeend","click<br>"))
+            document.getElementById("clear").addEventListener("click",()=>stdout.innerText="")
+            mb.addEventListener("click",startJobs)
+
+            function startJobs(event) {
+                let njob=10
+                console.log("click")
+                mb.disabled=true
+                pb.value = 0; pb.max = njob;
+                pb.classList.remove("invis")
+                pb.labels.forEach(lbl=>lbl.classList.remove("invis"))
+                for (let i = 0; i <= njob; i++) {
+                    worker.postMessage(i)
+                }
+                worker.postMessage("__done")
+            }
+
+            let worker = new Worker('webworker.js')
+            worker.addEventListener('message',(event)=>{
+                if (event.data=="__done"){
+                    pb.classList.add("invis")
+                    pb.labels.forEach(lbl=>lbl.classList.add("invis"))
+                    mb.disabled=false
+                    return
+                }
+                pb.value=pb.value+1
+                stdout.insertAdjacentHTML("beforeend",`${event.data}<br>`)
+            })
+            startJobs()
+        </script>
+    </body>
+</html>
